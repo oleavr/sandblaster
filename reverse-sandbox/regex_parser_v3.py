@@ -146,7 +146,7 @@ class RegexParser(object):
 
     @staticmethod
     def parse(re, i, regex_list):
-        length = struct.unpack('<H', ''.join([chr(x) for x in re[i:i+2]]))[0]
+        length = struct.unpack('<H', b''.join([bytes([x]) for x in re[i:i+2]]))[0]
         logger.debug("re.length: 0x%x", length)
         i += 2
         assert(length == len(re)-i)
@@ -154,4 +154,5 @@ class RegexParser(object):
             i = parse(re, i, regex_list)
 
         regex_list[0]["start_node"]=True
+
 
