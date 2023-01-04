@@ -155,7 +155,6 @@ def display_sandbox_profiles(f, re_table_offset, num_sb_ops, ios_version):
     if ios_version >= 13:
         f.seek(2)
         num_operation_nodes = struct.unpack("<H", f.read(2))[0]
-        print(hex(num_operation_nodes))
     else:
         # Place file pointer to start of operation nodes area.
         if ios_version >= 12:
@@ -214,7 +213,7 @@ def get_global_vars(f, vars_offset, num_vars, base_offset):
             len = struct.unpack("<H", f.read(2))[0]
         else:
             len = struct.unpack("<I", f.read(4))[0]
-        s = f.read(len-1)
+        s = f.read(len-1).decode("utf-8")
         global_vars.append(s)
     logger.info("global variables are {:s}".format(", ".join(s for s in global_vars)))
     return global_vars

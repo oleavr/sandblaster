@@ -145,7 +145,7 @@ class ReverseStringState:
 
     def read_token(self, substr_len):
         self.token_stack.append(self.token)
-        self.token = self.binary_string[self.pos:self.pos+substr_len]
+        self.token = self.binary_string[self.pos:self.pos+substr_len].decode("utf-8")
         logger.debug("got token \"{:s}\"".format(self.token))
         self.pos += substr_len
 
@@ -168,7 +168,7 @@ class ReverseStringState:
 
     def get_substring(self, substr_len):
         substr = self.binary_string[self.pos:self.pos+substr_len]
-        logger.debug(" ".join("0x{:02x}".format(ord(c)) for c in substr))
+        logger.debug(substr.hex())
         self.pos += substr_len
         return substr
 
@@ -335,7 +335,7 @@ class SandboxString:
             logger.warn("last state is not STATE_END_BYTE_READ ({:d})".format(rss.state))
             logger.warn("previous state ({:d})".format(rss.state_stack[len(rss.state_stack)-1]))
 
-        logger.info("initial string: " + " ".join("0x{:02x}".format(ord(c)) for c in s))
+        logger.info("initial string: " + s.hex())
         logger.info("output_strings (num: {:d}): {:s}".format(len(rss.output_strings), ",".join('"{:s}"'.format(s) for s in rss.output_strings)))
         return rss.output_strings
 

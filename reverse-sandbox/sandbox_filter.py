@@ -24,7 +24,7 @@ def get_filter_arg_string_by_offset(f, offset):
     if ios_major_version >= 13:
         len = struct.unpack("<H", f.read(2))[0]
         s = f.read(len)
-        logger.info("binary string is " + s.encode("hex"))
+        logger.info("binary string is " + s.hex())
         ss = reverse_string.SandboxString()
         myss = ss.parse_byte_string(s, global_vars)
         actual_string = ""
@@ -37,7 +37,7 @@ def get_filter_arg_string_by_offset(f, offset):
     if ios_major_version >= 10:
         f.seek(offset * 8)
         s = f.read(4+len)
-        logger.info("binary string is " + s.encode("hex"))
+        logger.info("binary string is " + s.hex())
         ss = reverse_string.SandboxString()
         myss = ss.parse_byte_string(s[4:], global_vars)
         actual_string = ""
@@ -58,7 +58,7 @@ def get_filter_arg_string_by_offset_with_type(f, offset):
     if ios_major_version >= 13:
         len = struct.unpack("<H", f.read(2))[0]
         s = f.read(len)
-        logger.info("binary string is " + s.encode("hex"))
+        logger.info("binary string is " + s.hex())
         ss = reverse_string.SandboxString()
         myss = ss.parse_byte_string(s, global_vars)
         append = "literal"
@@ -72,7 +72,7 @@ def get_filter_arg_string_by_offset_with_type(f, offset):
     if ios_major_version >= 10:
         f.seek(base_addr + offset * 8)
         s = f.read(4+len)
-        logger.info("binary string is " + s.encode("hex"))
+        logger.info("binary string is " + s.hex())
         ss = reverse_string.SandboxString()
         myss = ss.parse_byte_string(s[4:], global_vars)
         append = "literal"
