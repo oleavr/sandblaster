@@ -219,7 +219,36 @@ def get_global_vars(f, vars_offset, num_vars, base_offset):
     return global_vars
 
 def get_base_addr(f, ios_version):
-    if ios_version >= 13:
+    if ios_version >= 16:
+        f.seek(2)
+        op_nodes_count, \
+                sb_ops_count, \
+                pattern_vars_count, \
+                states_count, \
+                sb_profiles_count, \
+                regex_table_count, \
+                entitlements_count, \
+                instructions_count \
+                = struct.unpack('<HBBBxHHHH', f.read(14))
+
+        regex_table_offset = 16
+        pattern_vars_offset = regex_table_offset + (regex_table_count * 2)
+        states_offset = pattern_vars_offset + (pattern_vars_count * 2)
+        entitlements_offset = states_offset + (states_count * 2)
+        instructions_offset = entitlements_offset + (entitlements_count * 2)
+        profiles_offset = instructions_offset + (instructions_count * 2)
+        profiles_end_offset = profiles_offset + (sb_profiles_count * 376)
+        operation_nodes_size = op_nodes_count * 8
+
+        operation_nodes_offset = profiles_end_offset
+        align_delta = profiles_end_offset & 7
+        if align_delta != 0:
+            operation_nodes_offset += 8 - align_delta
+
+        base_offset = operation_nodes_offset + operation_nodes_size
+
+        return base_offset
+    elif ios_version >= 13:
         # extract operation node table count
         f.seek(2)
         op_nodes_count = struct.unpack('<H', f.read(2))[0]
@@ -304,12 +333,16 @@ def main():
         logger.debug("header: none for iOS <6; using 0")
         header = 0
 
-    if get_ios_major_version(args.release) >= 13:
+    if get_ios_major_version(args.release) >= 16:
+        re_table_offset = 16
+    elif get_ios_major_version(args.release) >= 13:
         re_table_offset = 12
     else:
         re_table_offset = struct.unpack("<H", f.read(2))[0]
 
-    if get_ios_major_version(args.release) >= 12:
+    if get_ios_major_version(args.release) >= 16:
+        f.seek(10)
+    elif get_ios_major_version(args.release) >= 12:
         f.seek(8)
     re_table_count = struct.unpack("<H", f.read(2))[0]
 
@@ -352,11 +385,15 @@ def main():
     # In case of sandbox profile bundle, go through each profile.
     if header == 0x8000:
         logger.info("using profile bundle")
-        if get_ios_major_version(args.release) >= 13:
-            # get the regex table entries
+        if get_ios_major_version(args.release) >= 16:
+            vars_offset = re_table_offset + re_table_count * 2
+            f.seek(5)
+            num_vars = struct.unpack("<B", f.read(1))[0]
+            logger.info("{:d} global vars at offset 0x{:0x}".format(num_vars, vars_offset))
+            global_vars = get_global_vars(f, vars_offset, num_vars, get_base_addr(f, get_ios_major_version(args.release)))
             f.seek(8)
-            regex_table_count = struct.unpack('<H', f.read(2))[0]
-            vars_offset = 12 + regex_table_count * 2
+        elif get_ios_major_version(args.release) >= 13:
+            vars_offset = re_table_offset + re_table_count * 2
             f.seek(10)
             num_vars = struct.unpack("<B", f.read(1))[0]
             logger.info("{:d} global vars at offset 0x{:0x}".format(num_vars, vars_offset))
